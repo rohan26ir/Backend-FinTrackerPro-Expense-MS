@@ -32,6 +32,9 @@ const sendTokens = async (res, user, statusCode = 200) => {
       email: user.email,
       avatar: user.avatar,
       currency: user.currency,
+      role: user.role,
+      plan: user.plan,
+      organizationName: user.organizationName,
     },
   });
 };
