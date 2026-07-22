@@ -23,8 +23,14 @@ app.use(
   })
 );
 
-// ─── CORS ─────────────────────────────────────────────────────────────────────
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000").split(",");
+
+// ─── CORS Configuration ──────────────────────────────────────────────────────
+const allowedOrigins = [
+  "http://localhost:3000",     // Development
+  "http://localhost:3001",
+  process.env.CLIENT_URL,     // Production frontend (set in Vercel)
+];
+
 app.use(
   cors({
     origin: (origin, cb) => {
