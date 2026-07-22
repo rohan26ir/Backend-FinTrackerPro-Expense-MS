@@ -31,6 +31,9 @@ exports.getProfile = async (req, res, next) => {
         email: user.email,
         avatar: user.avatar,
         currency: user.currency,
+        social: user.socialMedia,
+        bio: user.bio,
+        organization: user.organization,
         timezone: user.timezone,
         createdAt: user.createdAt,
         stats: {
@@ -52,7 +55,15 @@ exports.getProfile = async (req, res, next) => {
  */
 exports.updateProfile = async (req, res, next) => {
   try {
-    const allowed = ["name", "avatar", "currency", "timezone"];
+    const allowed = [
+                     "name", 
+                     "currency", 
+                     "bio", 
+                     "avatar", 
+                     "organization", 
+                     "social", 
+                     "timezone"
+                    ];
     const updates = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
 
@@ -64,7 +75,15 @@ exports.updateProfile = async (req, res, next) => {
     res.json({
       success: true,
       message: "Profile updated",
-      data: { _id: user._id, name: user.name, email: user.email, avatar: user.avatar, currency: user.currency },
+      data: { _id: user._id, 
+              name: user.name, 
+              email: user.email, 
+              avatar: user.avatar, 
+              currency: user.currency , 
+              bio:user.bio ,
+              organization: user.organization,
+              social:user.socialMedia, 
+            },
     });
   } catch (err) {
     next(err);
