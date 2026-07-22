@@ -16,16 +16,16 @@ const exportRoutes = require("./export.routes");
 const profileRoutes = require("./profile.routes");
 
 // Mount routes
-router.use("/api/auth", authRoutes);
-router.use("/api/bills", billRoutes);
-router.use("/api/budgets", budgetRoutes);
-router.use("/api/cards", cardRoutes);
-router.use("/api/categories", categoryRoutes);
-router.use("/api/notifications", notificationRoutes);
-router.use("/api/savings", savingRoutes);
-router.use("/api/transactions", transactionRoutes);
-router.use("/api/analytics", analyticsRoutes);
-router.use("/api/export", exportRoutes);
-router.use("/api/profile", profileRoutes);
+router.use("/auth", authRoutes);
+router.use("/bills", billRoutes);
+router.use("/budgets", budgetRoutes);
+router.use("/cards", cardRoutes);
+router.use("/categories", categoryRoutes);
+router.use("/notifications", notificationRoutes);
+router.use("/savings", savingRoutes);
+router.use("/transactions", transactionRoutes);
+router.use("/analytics", analyticsRoutes);
+router.use("/export", exportRoutes);
+router.use("/profile", profileRoutes);
 
 module.exports = router;
