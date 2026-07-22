@@ -2,17 +2,17 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 async function generateUniqueUsername(base) {
-  let clean = base
+  let clean = String(base || "")
+    .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_|_$/g, "");
+    .replace(/[^a-z0-9]+/g, "");
+
   if (!clean) clean = "user";
 
   let candidate = clean;
   let counter = 1;
   while (await mongoose.model("User").exists({ username: candidate })) {
-    candidate = `${clean}_${counter}`;
+    candidate = `${clean}${counter}`;
     counter++;
   }
   return candidate;
@@ -36,11 +36,10 @@ const userSchema = new mongoose.Schema(
     },
     username: {
       type: String,
-      required: true,
       unique: true,
       trim: true,
       lowercase: true,
-      match: [/^[a-z0-9_]+$/, "Username can only contain letters, numbers and underscores"],
+      match: [/^[a-z0-9]+$/, "Username can only contain letters and numbers"],
     },
     bio: {
       type: String,
@@ -93,20 +92,18 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Generate username before validation so registration can work without a client-supplied username.
+userSchema.pre("validate", async function () {
+  if (this.isNew && !this.username) {
+    const base = this.name || "user";
+    this.username = await generateUniqueUsername(base);
+  }
+});
+
 // Pre-save hook with proper error handling
-userSchema.pre("save", async function (next) {
-  try {
-    // Only generate username on creation if not provided
-    if (this.isNew && !this.username) {
-      const base = this.name || "user";
-      this.username = await generateUniqueUsername(base);
-    }
-    if (this.isModified("password")) {
-      this.password = await bcrypt.hash(this.password, 12);
-    }
-    next();
-  } catch (error) {
-    next(error);
+userSchema.pre("save", async function () {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 12);
   }
 });
 
