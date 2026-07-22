@@ -22,22 +22,21 @@ const sendTokens = async (res, user, statusCode = 200) => {
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
 
+  // Build full user object (excluding sensitive fields)
+  const userObj = user.toObject ? user.toObject() : user._doc;
+  delete userObj.password;
+  delete userObj.refreshToken;
+  delete userObj.resetOtp;
+  delete userObj.resetOtpExpiry;
+
   res.status(statusCode).json({
     success: true,
     accessToken,
     refreshToken,
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      currency: user.currency,
-      role: user.role,
-      plan: user.plan,
-      organizationName: user.organizationName,
-    },
+    user: userObj,
   });
 };
+
 
 const createTransport = () =>
   nodemailer.createTransport({
