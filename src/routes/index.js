@@ -4,6 +4,7 @@ const router = express.Router();
 
 // Import all route modules
 const authRoutes = require("./auth.routes");
+const userRoutes = require("./user.routes");      // <-- new
 const billRoutes = require("./bill.routes");
 const budgetRoutes = require("./budget.routes");
 const cardRoutes = require("./card.routes");
@@ -17,6 +18,7 @@ const profileRoutes = require("./profile.routes");
 
 // Mount routes
 router.use("/auth", authRoutes);
+router.use("/users", userRoutes);                 // <-- new
 router.use("/bills", billRoutes);
 router.use("/budgets", budgetRoutes);
 router.use("/cards", cardRoutes);
