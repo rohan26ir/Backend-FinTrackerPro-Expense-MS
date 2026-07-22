@@ -152,7 +152,7 @@ exports.forgotPassword = async (req, res, next) => {
     }
 
     // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 999999).toString();
     user.resetOtp = otp;
     user.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
     await user.save({ validateBeforeSave: false });
