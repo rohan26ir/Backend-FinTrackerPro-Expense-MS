@@ -18,9 +18,14 @@ exports.getProfile = async (req, res, next) => {
     // Stats summary
     const [txCount] = await Transaction.aggregate([
       { $match: { user: req.user._id, isDeleted: false } },
-      { $group: { _id: null, income: { $sum: { $cond: [{ $eq: ["$type","income"] }, "$amount", 0] } },
-                              expense: { $sum: { $cond: [{ $eq: ["$type","expense"] }, "$amount", 0] } },
-                              count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: null,
+          income: { $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] } },
+          expense: { $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] } },
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     res.json({
@@ -31,9 +36,9 @@ exports.getProfile = async (req, res, next) => {
         email: user.email,
         avatar: user.avatar,
         currency: user.currency,
-        social: user.socialMedia,
+        socialMedia: user.socialMedia,          // full social object
         bio: user.bio,
-        organization: user.organization,
+        organization: user.organizationName,    // map to frontend expected field
         timezone: user.timezone,
         createdAt: user.createdAt,
         stats: {
@@ -51,21 +56,31 @@ exports.getProfile = async (req, res, next) => {
 
 /**
  * PATCH /api/profile
- * Update name, avatar, currency, timezone
+ * Update all allowed fields (name, currency, bio, avatar, organizationName, socialMedia, timezone)
  */
 exports.updateProfile = async (req, res, next) => {
   try {
-    const allowed = [
-                     "name", 
-                     "currency", 
-                     "bio", 
-                     "avatar", 
-                     "organization", 
-                     "social", 
-                     "timezone"
-                    ];
+    // Map frontend field names → model field names
+    const fieldMap = {
+      name: "name",
+      currency: "currency",
+      bio: "bio",
+      avatar: "avatar",
+      timezone: "timezone",
+      socialMedia: "socialMedia",   // same name
+      organization: "organizationName", // frontend sends string → store in organizationName
+    };
+
     const updates = {};
-    allowed.forEach((k) => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
+    for (const [frontendKey, modelKey] of Object.entries(fieldMap)) {
+      if (req.body[frontendKey] !== undefined) {
+        updates[modelKey] = req.body[frontendKey];
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: "No valid fields to update" });
+    }
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, {
       new: true,
@@ -75,15 +90,17 @@ exports.updateProfile = async (req, res, next) => {
     res.json({
       success: true,
       message: "Profile updated",
-      data: { _id: user._id, 
-              name: user.name, 
-              email: user.email, 
-              avatar: user.avatar, 
-              currency: user.currency , 
-              bio:user.bio ,
-              organization: user.organization,
-              social:user.socialMedia, 
-            },
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        currency: user.currency,
+        bio: user.bio,
+        organization: user.organizationName,   // map back to frontend field
+        socialMedia: user.socialMedia,
+        timezone: user.timezone,
+      },
     });
   } catch (err) {
     next(err);
@@ -109,7 +126,7 @@ exports.changePassword = async (req, res, next) => {
     }
 
     user.password = newPassword;
-    user.refreshToken = ""; // force re-login on other devices
+    user.refreshToken = "";
     await user.save();
 
     res.json({ success: true, message: "Password changed successfully" });
@@ -120,7 +137,6 @@ exports.changePassword = async (req, res, next) => {
 
 /**
  * DELETE /api/profile
- * Permanently delete account and all associated data
  */
 exports.deleteAccount = async (req, res, next) => {
   try {
