@@ -16,9 +16,13 @@ const analyticsRoutes = require("./analytics.routes");
 const exportRoutes = require("./export.routes");
 const profileRoutes = require("./profile.routes");
 
+const investmentRoutes = require("./investment.routes");
+const taxRoutes = require("./tax.routes");
+const reportRoutes = require("./report.routes");
+
 // Mount routes
 router.use("/auth", authRoutes);
-router.use("/users", userRoutes);                 // <-- new
+router.use("/users", userRoutes); 
 router.use("/bills", billRoutes);
 router.use("/budgets", budgetRoutes);
 router.use("/cards", cardRoutes);
@@ -29,5 +33,8 @@ router.use("/transactions", transactionRoutes);
 router.use("/analytics", analyticsRoutes);
 router.use("/export", exportRoutes);
 router.use("/profile", profileRoutes);
+router.use("/investments", investmentRoutes);
+router.use("/tax", taxRoutes);
+router.use("/reports", reportRoutes);
 
 module.exports = router;
