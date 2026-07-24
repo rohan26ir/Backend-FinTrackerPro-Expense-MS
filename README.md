@@ -1,49 +1,161 @@
-# FinTracker Backend
+# FinTracker Pro — Backend API 🚀
 
-FinTracker Backend is the REST API for the FinTracker expense management application. It handles authentication, transactions, budgets, bills, cards, savings, notifications, analytics, profile management, CSV/JSON export, and category management.
+[![Node.js](https://img.shields.io/badge/Node.js-v18%2B-green.svg)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-v5.x-blue.svg)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-brightgreen.svg)](https://www.mongodb.com/)
+[![License](https://img.shields.io/badge/License-ISC-yellow.svg)](LICENSE)
+[![Deployment](https://img.shields.io/badge/Vercel-Deployed-black.svg)](https://api-fintrackerpro.vercel.app)
 
-## Project Overview
+**FinTracker Pro Backend** is a feature-rich, secure, and production-ready RESTful API built with **Node.js**, **Express**, and **MongoDB (Mongoose)**. It serves as the core engine for the FinTracker expense management application, powering user authentication, transaction handling, budget tracking, bill management, credit/debit card tracking, savings goal management, custom category organization, analytics, notifications, and data exports.
 
-- Framework: Node.js + Express
-- Database: MongoDB + Mongoose
-- Authentication: JWT access token + refresh token
-- API Base URL: `http://localhost:5000` or your deployed domain
+---
 
-## Environment Variables
+## 🌟 Key Features
 
-Create a `.env` file in the project root with variables such as:
+- **🔐 Robust Authentication & Security**:
+  - Secure JWT authentication using dual token architecture (Short-lived Access Token + Long-lived Refresh Token).
+  - Password hashing with `bcryptjs`.
+  - Password reset via Email & 6-digit OTP powered by `nodemailer`.
+  - Security headers via `helmet` and IP rate-limiting with `express-rate-limit`.
+  - CORS security configured for frontend development and production environments.
+
+- **💸 Transaction Management**:
+  - Full CRUD for income and expense transactions.
+  - Advanced filtering (type, category, date range), search, and pagination.
+  - Soft deletion support (`isDeleted` flag) to preserve historic integrity.
+  - Instant transaction summaries and aggregations.
+
+- **🎯 Budgets & Savings Goals**:
+  - Category-based budget creation (monthly/yearly) with target spending limits and auto-calculated spent progress.
+  - Savings goals with target deadlines, progress tracking, and contributions.
+
+- **🔔 Bills & Reminders**:
+  - Track upcoming, overdue, and paid bills with customizable reminder days.
+  - Real-time notification creation for bill alerts and activity updates.
+
+- **💳 Cards & Accounts Management**:
+  - Manage multiple bank cards, credit cards, and debit accounts with balances and currency preference.
+
+- **📊 Comprehensive Analytics**:
+  - Dashboard analytics overview (total balance, total income, total expenses, net savings rate).
+  - Monthly income vs. expense chart data.
+  - Expense breakdown by category.
+  - Daily trend calculations over custom date ranges.
+
+- **📁 Data Export**:
+  - One-click export of transaction history to CSV and JSON formats.
+
+- **👥 Public Directory & Profiles**:
+  - User profiles with total activity statistics.
+  - Public directory listing for user discoverability.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Runtime**: Node.js
+- **Framework**: Express.js (v5.x)
+- **Database**: MongoDB with Mongoose ORM
+- **Authentication**: JSON Web Tokens (`jsonwebtoken`), `bcryptjs`
+- **Validation**: `express-validator`
+- **Email Service**: `nodemailer` (SMTP / Gmail)
+- **Security**: `helmet`, `express-rate-limit`, `cors`
+- **Deployment**: Vercel Serverless Functions / Node.js Host
+
+---
+
+## 📂 Directory Structure
+
+```text
+FinTracker-backend/
+├── .env                  # Local environment configuration
+├── .gitignore            # Git ignore rules
+├── LICENSE               # ISC License
+├── README.md             # Project documentation
+├── package.json          # Node.js dependencies and scripts
+├── server.js             # Server entry point & DB connection initialization
+├── vercel.json           # Vercel deployment configuration
+└── src/
+    ├── app.js            # Express application setup, security, and middleware
+    ├── config/
+    │   └── db.js         # MongoDB connection configuration
+    ├── controllers/      # Route handler logic (auth, transactions, budgets, etc.)
+    ├── middleware/       # Custom middleware (auth, validate, errorHandler)
+    ├── models/           # Mongoose database schemas (User, Transaction, Budget, etc.)
+    └── routes/           # Express router endpoints
+```
+
+---
+
+## ⚙️ Environment Variables
+
+Create a `.env` file in the project root based on the following template:
 
 ```env
+# Server Configuration
 PORT=5000
+CLIENT_URL=http://localhost:3000
+
+# Database Configuration
 MONGO_URI=mongodb://127.0.0.1:27017/fintracker
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
+
+# JWT Authentication Secrets & Expirations
+JWT_ACCESS_SECRET=your_super_secret_access_key_here
+JWT_REFRESH_SECRET=your_super_secret_refresh_key_here
 JWT_ACCESS_EXPIRES=15m
 JWT_REFRESH_EXPIRES=7d
-CLIENT_URL=http://localhost:3000
+
+# Email SMTP Settings (for Password Reset & OTP)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
-EMAIL_USER=your_email
-EMAIL_PASS=your_password
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
 EMAIL_FROM=FinTracker <noreply@fintracker.com>
 ```
 
-## Running the Server
+---
 
-```bash
-npm install
-npm run dev
-```
+## 🚀 Getting Started
 
-If you are using the production start script:
+### Prerequisites
 
-```bash
-npm start
-```
+- **Node.js** (v18.x or higher)
+- **MongoDB** (Local instance or MongoDB Atlas connection string)
+- **npm** or **yarn**
 
-## Authentication
+### Installation
 
-Most endpoints require a bearer token.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/FinTracker-backend.git
+   cd FinTracker-backend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Setup environment variables:
+   Create a `.env` file in the project root and populate it as shown in the [Environment Variables](#️-environment-variables) section.
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. For production execution:
+   ```bash
+   npm start
+   ```
+
+The API server will run at `http://localhost:5000` by default.
+
+---
+
+## 🔒 Authentication Flow
+
+Most endpoints are protected and require a Bearer token in the `Authorization` header.
 
 ### Header Format
 
@@ -51,182 +163,157 @@ Most endpoints require a bearer token.
 Authorization: Bearer <accessToken>
 ```
 
-### Common Auth Flow
+### Flow Checklist:
+1. Register (`POST /api/auth/register`) or Login (`POST /api/auth/login`).
+2. Receive `accessToken` and `refreshToken` in the response.
+3. Attach `Bearer <accessToken>` to headers for subsequent protected requests.
+4. When `accessToken` expires, call `POST /api/auth/refresh` with your `refreshToken` to acquire a new access token without requiring re-login.
 
-1. Register or login
-2. Copy `accessToken`
-3. Send it in the `Authorization` header for protected routes
+---
 
-## API Endpoint Summary
+## 📑 API Endpoint Summary
 
-### Health
+### Base & Health Check
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET` | `/` | API Health & status check | No |
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/` | Health check | No |
+### Authentication (`/api/auth`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user account | No |
+| `POST` | `/api/auth/login` | Login user & issue access/refresh tokens | No |
+| `POST` | `/api/auth/refresh` | Obtain a new access token using refresh token | No |
+| `POST` | `/api/auth/logout` | Invalidate/logout current user session | Yes |
+| `GET`  | `/api/auth/me` | Fetch authenticated user profile details | Yes |
+| `POST` | `/api/auth/forgot-password` | Send 6-digit OTP for password reset | No |
+| `POST` | `/api/auth/reset-password` | Reset password using verified OTP | No |
 
-### Authentication
+### Users Directory (`/api/users`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET` | `/api/users` | List all public user profiles | No |
+| `GET` | `/api/users/:username` | Fetch specific user public profile by username | No |
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| POST | `/api/auth/register` | Register a new user | No |
-| POST | `/api/auth/login` | Login a user | No |
-| POST | `/api/auth/refresh` | Refresh access token | No |
-| POST | `/api/auth/logout` | Logout current session | Yes |
-| GET | `/api/auth/me` | Get current authenticated user | Yes |
-| POST | `/api/auth/forgot-password` | Request OTP to reset password | No |
-| POST | `/api/auth/reset-password` | Reset password using OTP | No |
+### User Profile (`/api/profile`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/profile` | Get logged-in user profile & account stats | Yes |
+| `PATCH`  | `/api/profile` | Update profile information (name, avatar, currency) | Yes |
+| `PATCH`  | `/api/profile/change-password` | Change current password | Yes |
+| `DELETE` | `/api/profile` | Permanently delete account and all associated data | Yes |
 
-### Bills
+### Transactions (`/api/transactions`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/transactions` | List transactions (filtering, search, pagination) | Yes |
+| `POST`   | `/api/transactions` | Create a new income or expense transaction | Yes |
+| `GET`    | `/api/transactions/summary` | Get income/expense total summary | Yes |
+| `GET`    | `/api/transactions/:id` | Fetch single transaction details by ID | Yes |
+| `PATCH`  | `/api/transactions/:id` | Update transaction record | Yes |
+| `DELETE` | `/api/transactions/:id` | Soft delete a transaction | Yes |
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/bills?filter=upcoming|overdue|paid|all` | Get bills with optional filter | Yes |
-| POST | `/api/bills` | Create a bill | Yes |
-| PATCH | `/api/bills/:id` | Update a bill | Yes |
-| DELETE | `/api/bills/:id` | Delete a bill | Yes |
+### Budgets (`/api/budgets`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/budgets` | Fetch active budgets with spent total calculations | Yes |
+| `POST`   | `/api/budgets` | Set a category budget limit | Yes |
+| `PATCH`  | `/api/budgets/:id` | Update budget details or limit | Yes |
+| `DELETE` | `/api/budgets/:id` | Delete budget | Yes |
 
-### Budgets
+### Bills (`/api/bills`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/bills` | Fetch bills (filter: `upcoming`, `overdue`, `paid`, `all`) | Yes |
+| `POST`   | `/api/bills` | Create a bill reminder | Yes |
+| `PATCH`  | `/api/bills/:id` | Update bill status or details | Yes |
+| `DELETE` | `/api/bills/:id` | Delete a bill | Yes |
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/budgets` | Get all active budgets and spent totals | Yes |
-| POST | `/api/budgets` | Create a budget | Yes |
-| PATCH | `/api/budgets/:id` | Update a budget | Yes |
-| DELETE | `/api/budgets/:id` | Delete a budget | Yes |
+### Cards & Accounts (`/api/cards`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/cards` | List all saved cards/accounts | Yes |
+| `POST`   | `/api/cards` | Add new debit/credit card or bank account | Yes |
+| `PATCH`  | `/api/cards/:id` | Update card information | Yes |
+| `DELETE` | `/api/cards/:id` | Delete card record | Yes |
 
-### Cards
+### Savings Goals (`/api/savings`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/savings` | Get all savings goals | Yes |
+| `POST`   | `/api/savings` | Create a new savings goal | Yes |
+| `PATCH`  | `/api/savings/:id` | Update savings goal or contribute funds | Yes |
+| `DELETE` | `/api/savings/:id` | Delete savings goal | Yes |
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/cards` | Get all cards | Yes |
-| POST | `/api/cards` | Create a card | Yes |
-| PATCH | `/api/cards/:id` | Update a card | Yes |
-| DELETE | `/api/cards/:id` | Delete a card | Yes |
+### Categories (`/api/categories`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/categories` | Get custom & default categories (`type=income\|expense\|both`) | Yes |
+| `POST`   | `/api/categories` | Create custom category | Yes |
+| `PATCH`  | `/api/categories/:id` | Edit custom category | Yes |
+| `DELETE` | `/api/categories/:id` | Remove custom category | Yes |
 
-### Categories
+### Notifications (`/api/notifications`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET`    | `/api/notifications` | Get notifications (`?unread=true` filter optional) | Yes |
+| `PATCH`  | `/api/notifications/:id/read` | Mark single notification as read | Yes |
+| `PATCH`  | `/api/notifications/read-all` | Mark all notifications as read | Yes |
+| `DELETE` | `/api/notifications/:id` | Remove specific notification | Yes |
+| `DELETE` | `/api/notifications` | Clear all notifications | Yes |
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/categories?type=income|expense|both` | Get categories | Yes |
-| POST | `/api/categories` | Create a custom category | Yes |
-| PATCH | `/api/categories/:id` | Update a category | Yes |
-| DELETE | `/api/categories/:id` | Delete a category | Yes |
+### Analytics (`/api/analytics`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET` | `/api/analytics/dashboard` | Dashboard totals, net balance, and savings overview | Yes |
+| `GET` | `/api/analytics/chart` | Monthly income vs. expense chart series | Yes |
+| `GET` | `/api/analytics/by-category` | Category-wise expense breakdown statistics | Yes |
+| `GET` | `/api/analytics/trends` | Daily cash flow trend data over custom range | Yes |
 
-### Notifications
+### Data Export (`/api/export`)
+| Method | Endpoint | Description | Protected |
+|---|---|---|---|
+| `GET` | `/api/export/csv` | Download transaction records as `.csv` file | Yes |
+| `GET` | `/api/export/json` | Download transaction records as structured JSON | Yes |
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/notifications?unread=true` | Get notifications | Yes |
-| PATCH | `/api/notifications/:id/read` | Mark one notification as read | Yes |
-| PATCH | `/api/notifications/read-all` | Mark all notifications as read | Yes |
-| DELETE | `/api/notifications/:id` | Delete a notification | Yes |
-| DELETE | `/api/notifications` | Clear all notifications | Yes |
+---
 
-### Savings
+## 📝 Example Request & Response Payloads
 
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/savings` | Get savings goals | Yes |
-| POST | `/api/savings` | Create a savings goal | Yes |
-| PATCH | `/api/savings/:id` | Update savings goal or contribute | Yes |
-| DELETE | `/api/savings/:id` | Delete savings goal | Yes |
+### 1. User Registration (`POST /api/auth/register`)
 
-### Transactions
-
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/transactions` | List transactions with filters and pagination | Yes |
-| POST | `/api/transactions` | Create a transaction | Yes |
-| GET | `/api/transactions/summary` | Get income/expense summary | Yes |
-| GET | `/api/transactions/:id` | Get one transaction by ID | Yes |
-| PATCH | `/api/transactions/:id` | Update a transaction | Yes |
-| DELETE | `/api/transactions/:id` | Soft delete a transaction | Yes |
-
-### Analytics
-
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/analytics/dashboard` | Dashboard totals and balance | Yes |
-| GET | `/api/analytics/chart` | Monthly income vs expense chart data | Yes |
-| GET | `/api/analytics/by-category` | Expense breakdown by category | Yes |
-| GET | `/api/analytics/trends` | Daily trend data for a date range | Yes |
-
-### Export
-
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/export/csv` | Export transactions as CSV | Yes |
-| GET | `/api/export/json` | Export transactions as JSON | Yes |
-
-### Profile
-
-| Method | Route | Description | Protected |
-|--------|-------|-------------|-----------|
-| GET | `/api/profile` | Get current profile with stats | Yes |
-| PATCH | `/api/profile` | Update profile info | Yes |
-| PATCH | `/api/profile/change-password` | Change password | Yes |
-| DELETE | `/api/profile` | Delete account and all related data | Yes |
-
-## Example Request Data
-
-### Register
-
-```http
-POST /api/auth/register
-Content-Type: application/json
-```
-
+**Request Payload**:
 ```json
 {
   "name": "Rohan",
   "email": "rohan@example.com",
-  "password": "123456"
+  "password": "SecurePassword123"
 }
 ```
 
-### Login
-
-```http
-POST /api/auth/login
-Content-Type: application/json
-```
-
+**Response Payload**:
 ```json
 {
-  "email": "rohan@example.com",
-  "password": "123456"
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "user": {
+      "id": "66a01b2c3d4e5f6a7b8c9d0e",
+      "name": "Rohan",
+      "email": "rohan@example.com",
+      "currency": "BDT"
+    },
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+  }
 }
 ```
 
-### Refresh Token
+---
 
-```http
-POST /api/auth/refresh
-Content-Type: application/json
-```
+### 2. Create Transaction (`POST /api/transactions`)
 
-```json
-{
-  "refreshToken": "your_refresh_token_here"
-}
-```
-
-### Get Current User
-
-```http
-GET /api/auth/me
-Authorization: Bearer <accessToken>
-```
-
-### Create Transaction
-
-```http
-POST /api/transactions
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-```
-
+**Request Payload**:
 ```json
 {
   "type": "expense",
@@ -234,35 +321,41 @@ Content-Type: application/json
   "currency": "BDT",
   "category": "Food",
   "account": "Cash",
-  "date": "2026-07-21",
+  "date": "2026-07-25",
   "recurrence": "None",
-  "note": "Dinner with friends",
+  "note": "Weekend dinner with friends",
   "tags": ["food", "weekend"]
 }
 ```
 
-### Get Transactions
-
-```http
-GET /api/transactions?page=1&limit=10&type=expense&category=Food&startDate=2026-07-01&endDate=2026-07-31
-Authorization: Bearer <accessToken>
+**Response Payload**:
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "66a02c3d4e5f6a7b8c9d0e1f",
+    "user": "66a01b2c3d4e5f6a7b8c9d0e",
+    "type": "expense",
+    "amount": 750,
+    "currency": "BDT",
+    "category": "Food",
+    "account": "Cash",
+    "date": "2026-07-25T00:00:00.000Z",
+    "recurrence": "None",
+    "note": "Weekend dinner with friends",
+    "tags": ["food", "weekend"],
+    "isDeleted": false,
+    "createdAt": "2026-07-25T02:59:30.000Z",
+    "updatedAt": "2026-07-25T02:59:30.000Z"
+  }
+}
 ```
 
-### Get Transaction Summary
+---
 
-```http
-GET /api/transactions/summary?startDate=2026-07-01&endDate=2026-07-31
-Authorization: Bearer <accessToken>
-```
+### 3. Create Budget (`POST /api/budgets`)
 
-### Create Budget
-
-```http
-POST /api/budgets
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-```
-
+**Request Payload**:
 ```json
 {
   "category": "Food",
@@ -272,144 +365,52 @@ Content-Type: application/json
   "month": 7,
   "year": 2026,
   "color": "#F97316",
-  "icon": "Target"
+  "icon": "Utensils"
 }
 ```
 
-### Create Bill
+---
 
-```http
-POST /api/bills
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-```
+### 4. Response Conventions
 
-```json
-{
-  "name": "Internet Bill",
-  "amount": 950,
-  "currency": "BDT",
-  "category": "Utilities",
-  "dueDate": "2026-07-28",
-  "recurrence": "Monthly",
-  "reminderDaysBefore": 3,
-  "note": "Home broadband",
-  "icon": "Bell",
-  "color": "#F87171"
-}
-```
+All API endpoints strictly adhere to uniform JSON responses:
 
-### Create Card
-
-```http
-POST /api/cards
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-```
-
-```json
-{
-  "label": "City Bank Visa",
-  "type": "debit",
-  "last4": "4821",
-  "bank": "City Bank",
-  "color": "#6366F1",
-  "balance": 25000,
-  "currency": "BDT",
-  "isDefault": true
-}
-```
-
-### Create Savings Goal
-
-```http
-POST /api/savings
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-```
-
-```json
-{
-  "name": "Emergency Fund",
-  "targetAmount": 50000,
-  "currency": "BDT",
-  "deadline": "2026-12-31",
-  "icon": "PiggyBank",
-  "color": "#4ADE80",
-  "description": "Save for emergencies"
-}
-```
-
-### Create Category
-
-```http
-POST /api/categories
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-```
-
-```json
-{
-  "name": "Gym",
-  "type": "expense",
-  "icon": "Dumbbell",
-  "color": "#22C55E"
-}
-```
-
-### Create Notification
-
-Notifications are usually created internally by the application, but you can also seed them using the notification model or by triggering related flows.
-
-## Example Response Shapes
-
-### Success Response
-
+**Success Standard**:
 ```json
 {
   "success": true,
+  "message": "Optional descriptive success message",
   "data": {}
 }
 ```
 
-### Error Response
-
+**Error Standard**:
 ```json
 {
   "success": false,
-  "message": "Something went wrong"
+  "message": "Error description or validation message",
+  "errors": []
 }
 ```
 
-## Postman Testing Setup
+---
 
-1. Open Postman.
-2. Create a new request.
-3. Set the request type to `GET` or `POST`.
-4. Enter the endpoint URL.
-5. In the `Headers` tab, add:
-   - `Content-Type: application/json`
-   - `Authorization: Bearer <accessToken>` for protected routes
-6. In the `Body` tab, choose `raw` and send a JSON body.
+## 🌐 Deployment (Vercel)
 
-## Notes
+This repository is configured for serverless deployment on **Vercel** via `vercel.json`.
 
-- Authenticated routes use the JWT `accessToken` returned from `/api/auth/login`.
-- Refresh tokens are returned on login/register and can be used through `/api/auth/refresh`.
-- Transaction deletion is soft-delete, so the record is marked deleted instead of being permanently removed.
-- The backend uses `isDeleted` and `isActive` flags for soft cleanup and account state.
+1. Install Vercel CLI or connect your Git repository to Vercel.
+2. Configure Environment Variables in the Vercel project settings matching `.env`.
+3. Deploy:
+   ```bash
+   vercel --prod
+   ```
 
-## Suggested Test Sequence
+Live API Base URL: `https://api-fintrackerpro.vercel.app`
 
-1. `POST /api/auth/register`
-2. `POST /api/auth/login`
-3. `GET /api/auth/me`
-4. `POST /api/categories`
-5. `POST /api/transactions`
-6. `GET /api/transactions`
-7. `GET /api/transactions/summary`
-8. `POST /api/budgets`
-9. `POST /api/bills`
-10. `POST /api/savings`
-11. `GET /api/analytics/dashboard`
+---
+
+## 📄 License
+
+This project is licensed under the [ISC License](LICENSE).
 
