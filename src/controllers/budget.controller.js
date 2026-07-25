@@ -10,7 +10,6 @@ exports.getAll = async (req, res, next) => {
     const now = new Date();
     const budgets = await Budget.find({ user: req.user._id, isActive: true }).lean();
 
-    // For each budget compute spent this period
     const enriched = await Promise.all(
       budgets.map(async (b) => {
         let startDate, endDate;
@@ -29,7 +28,6 @@ exports.getAll = async (req, res, next) => {
           endDate.setDate(startDate.getDate() + 6);
           endDate.setHours(23, 59, 59, 999);
         } else {
-          // yearly
           startDate = new Date(y, 0, 1);
           endDate = new Date(y, 11, 31, 23, 59, 59);
         }
@@ -38,8 +36,8 @@ exports.getAll = async (req, res, next) => {
           {
             $match: {
               user: req.user._id,
-              type: "expense",
-              category: b.category,
+              type: { $in: ["expense", "Expense"] },
+              category: new RegExp(b.category || b.name || "", "i"),
               date: { $gte: startDate, $lte: endDate },
               isDeleted: false,
             },
@@ -48,11 +46,18 @@ exports.getAll = async (req, res, next) => {
         ]);
 
         const spent = agg?.spent || 0;
+        const targetAmount = b.amount || b.budgeted || 0;
+
         return {
           ...b,
+          id: b._id.toString(),
+          name: b.category || b.name || "Category",
+          category: b.category || b.name || "Category",
+          budgeted: targetAmount,
+          amount: targetAmount,
           spent,
-          remaining: Math.max(0, b.amount - spent),
-          percentUsed: b.amount ? Math.min(100, Math.round((spent / b.amount) * 100)) : 0,
+          remaining: Math.max(0, targetAmount - spent),
+          percentUsed: targetAmount ? Math.min(100, Math.round((spent / targetAmount) * 100)) : 0,
         };
       })
     );
@@ -68,14 +73,16 @@ exports.getAll = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { category, amount, currency, period, month, year, color, icon } = req.body;
+    const { category, name, amount, budgeted, currency, period, month, year, color, icon } = req.body;
     const now = new Date();
+    const categoryName = (category || name || "Category").trim();
+    const targetAmount = parseFloat(amount || budgeted || 0);
 
     const budget = await Budget.create({
       user: req.user._id,
-      category,
-      amount: parseFloat(amount),
-      currency: currency || "BDT",
+      category: categoryName,
+      amount: targetAmount,
+      currency: currency || "USD",
       period: period || "monthly",
       month: month || now.getMonth() + 1,
       year: year || now.getFullYear(),
@@ -83,7 +90,16 @@ exports.create = async (req, res, next) => {
       icon: icon || "Target",
     });
 
-    res.status(201).json({ success: true, data: budget });
+    res.status(201).json({
+      success: true,
+      data: {
+        ...budget.toObject(),
+        id: budget._id.toString(),
+        name: categoryName,
+        budgeted: targetAmount,
+        spent: 0,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -94,9 +110,12 @@ exports.create = async (req, res, next) => {
  */
 exports.update = async (req, res, next) => {
   try {
-    const allowed = ["category", "amount", "currency", "period", "month", "year", "color", "icon", "isActive"];
+    const allowed = ["category", "name", "amount", "budgeted", "currency", "period", "month", "year", "color", "icon", "isActive"];
     const updates = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
+    
+    if (updates.name && !updates.category) updates.category = updates.name;
+    if (updates.budgeted && !updates.amount) updates.amount = parseFloat(updates.budgeted);
     if (updates.amount) updates.amount = parseFloat(updates.amount);
 
     const budget = await Budget.findOneAndUpdate(
@@ -106,7 +125,15 @@ exports.update = async (req, res, next) => {
     );
 
     if (!budget) return res.status(404).json({ success: false, message: "Budget not found" });
-    res.json({ success: true, data: budget });
+    res.json({
+      success: true,
+      data: {
+        ...budget.toObject(),
+        id: budget._id.toString(),
+        name: budget.category,
+        budgeted: budget.amount,
+      },
+    });
   } catch (err) {
     next(err);
   }

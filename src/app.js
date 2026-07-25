@@ -12,11 +12,11 @@ const app = express();
 // ─── Security ────────────────────────────────────────────────────────────────
 app.use(helmet());
 
-// Rate limiting — 100 requests per 15 min per IP
+// Rate limiting — 1000 requests per 15 min per IP
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 1000,
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message: "Too many requests, please try again later." },

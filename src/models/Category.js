@@ -16,7 +16,7 @@ const categorySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["income", "expense", "both"],
+      enum: ["income", "expense", "both", "Income", "Expense", "Both"],
       required: [true, "Category type is required"],
     },
     icon: { type: String, default: "Package" }, // lucide icon name

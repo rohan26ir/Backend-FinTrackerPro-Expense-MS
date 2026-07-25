@@ -16,7 +16,7 @@ exports.getTaxOverview = async (req, res, next) => {
 
     const incomeTransactions = await Transaction.find({
       user: req.user._id,
-      type: "Income",
+      type: { $in: ["income", "Income"] },
       date: { $gte: startDate, $lte: endDate },
     });
 

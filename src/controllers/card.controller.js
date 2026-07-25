@@ -6,7 +6,18 @@ const Card = require("../models/Card");
 exports.getAll = async (req, res, next) => {
   try {
     const cards = await Card.find({ user: req.user._id }).sort({ isDefault: -1, createdAt: -1 }).lean();
-    res.json({ success: true, data: cards });
+    const mapped = cards.map((c) => ({
+      ...c,
+      id: c._id.toString(),
+      cardName: c.cardName || c.label || "My Card",
+      cardNumber: c.cardNumber || (c.last4 ? `**** ${c.last4}` : "**** 4821"),
+      expiryDate: c.expiryDate || "12/28",
+      cardType: c.cardType || "Visa",
+      limit: c.limit || c.balance || 5000,
+      used: c.used || 0,
+      status: c.status || "Active",
+    }));
+    res.json({ success: true, data: mapped });
   } catch (err) {
     next(err);
   }
@@ -17,26 +28,42 @@ exports.getAll = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { label, type, last4, bank, color, balance, currency, isDefault } = req.body;
+    const { cardName, label, cardNumber, last4, expiryDate, cardType, limit, used, status, type, bank, color, balance, currency, isDefault } = req.body;
 
     if (isDefault) {
-      // Unset current default
       await Card.updateMany({ user: req.user._id }, { isDefault: false });
     }
 
+    const cardLabel = cardName || label || "My Card";
+    const num = cardNumber || last4 || "";
+    const extractedLast4 = num ? num.replace(/\D/g, "").slice(-4) : "4821";
+
     const card = await Card.create({
       user: req.user._id,
-      label,
+      label: cardLabel,
+      cardName: cardLabel,
+      cardNumber: cardNumber || (extractedLast4 ? `**** ${extractedLast4}` : "**** 4821"),
+      expiryDate: expiryDate || "12/28",
+      cardType: cardType || "Visa",
+      limit: limit ? parseFloat(limit) : balance ? parseFloat(balance) : 5000,
+      used: used ? parseFloat(used) : 0,
+      status: status || "Active",
       type: type || "debit",
-      last4: last4 || "",
+      last4: extractedLast4,
       bank: bank || "",
       color: color || "#6366F1",
-      balance: balance ? parseFloat(balance) : 0,
-      currency: currency || "BDT",
+      balance: limit ? parseFloat(limit) : balance ? parseFloat(balance) : 5000,
+      currency: currency || "USD",
       isDefault: !!isDefault,
     });
 
-    res.status(201).json({ success: true, data: card });
+    res.status(201).json({
+      success: true,
+      data: {
+        ...card.toObject(),
+        id: card._id.toString(),
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -47,15 +74,11 @@ exports.create = async (req, res, next) => {
  */
 exports.update = async (req, res, next) => {
   try {
-    const allowed = ["label", "type", "last4", "bank", "color", "balance", "currency", "isDefault"];
+    const allowed = ["label", "cardName", "cardNumber", "expiryDate", "cardType", "limit", "used", "status", "type", "last4", "bank", "color", "balance", "currency", "isDefault"];
     const updates = {};
     allowed.forEach((k) => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
 
-    if (updates.balance !== undefined) updates.balance = parseFloat(updates.balance);
-
-    if (updates.isDefault) {
-      await Card.updateMany({ user: req.user._id }, { isDefault: false });
-    }
+    if (updates.cardName && !updates.label) updates.label = updates.cardName;
 
     const card = await Card.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
@@ -64,7 +87,13 @@ exports.update = async (req, res, next) => {
     );
 
     if (!card) return res.status(404).json({ success: false, message: "Card not found" });
-    res.json({ success: true, data: card });
+    res.json({
+      success: true,
+      data: {
+        ...card.toObject(),
+        id: card._id.toString(),
+      },
+    });
   } catch (err) {
     next(err);
   }

@@ -28,11 +28,11 @@ const seedDefaults = async (userId) => {
   if (existing > 0) return;
 
   const docs = [
-    ...INCOME_DEFAULTS.map((c) => ({ ...c, user: userId, type: "income", isDefault: true })),
-    ...EXPENSE_DEFAULTS.map((c) => ({ ...c, user: userId, type: "expense", isDefault: true })),
+    ...INCOME_DEFAULTS.map((c) => ({ ...c, user: userId, type: "Expense", isDefault: true })),
+    ...EXPENSE_DEFAULTS.map((c) => ({ ...c, user: userId, type: "Expense", isDefault: true })),
   ];
 
-  await Category.insertMany(docs, { ordered: false }).catch(() => {}); // ignore duplicate errors
+  await Category.insertMany(docs, { ordered: false }).catch(() => {});
 };
 
 /**
@@ -40,16 +40,24 @@ const seedDefaults = async (userId) => {
  */
 exports.getAll = async (req, res, next) => {
   try {
-    // Seed defaults on first visit
     await seedDefaults(req.user._id);
 
     const filter = { user: req.user._id };
-    if (req.query.type && ["income", "expense", "both"].includes(req.query.type)) {
-      filter.type = req.query.type;
+    if (req.query.type) {
+      const targetType = req.query.type.toLowerCase();
+      filter.type = { $in: [targetType, targetType.charAt(0).toUpperCase() + targetType.slice(1)] };
     }
 
     const categories = await Category.find(filter).sort({ isDefault: -1, name: 1 }).lean();
-    res.json({ success: true, data: categories });
+
+    // Map type field to Capitalized for frontend consistency
+    const mapped = categories.map((c) => ({
+      ...c,
+      id: c._id.toString(),
+      type: c.type ? c.type.charAt(0).toUpperCase() + c.type.slice(1).toLowerCase() : "Expense",
+    }));
+
+    res.json({ success: true, data: mapped });
   } catch (err) {
     next(err);
   }
@@ -61,16 +69,24 @@ exports.getAll = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const { name, type, icon, color } = req.body;
+    const catType = type ? (type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()) : "Expense";
 
     const category = await Category.create({
       user: req.user._id,
-      name,
-      type,
+      name: name.trim(),
+      type: catType,
       icon: icon || "Package",
       color: color || "#9CA3AF",
     });
 
-    res.status(201).json({ success: true, data: category });
+    res.status(201).json({
+      success: true,
+      data: {
+        ...category.toObject(),
+        id: category._id.toString(),
+        type: catType,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -81,18 +97,29 @@ exports.create = async (req, res, next) => {
  */
 exports.update = async (req, res, next) => {
   try {
-    const { name, icon, color } = req.body;
+    const { name, icon, color, type } = req.body;
+    const updates = {};
+    if (name) updates.name = name.trim();
+    if (icon) updates.icon = icon;
+    if (color) updates.color = color;
+    if (type) updates.type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
 
     const category = await Category.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
-      { name, icon, color },
+      updates,
       { new: true, runValidators: true }
     );
 
     if (!category) {
       return res.status(404).json({ success: false, message: "Category not found" });
     }
-    res.json({ success: true, data: category });
+    res.json({
+      success: true,
+      data: {
+        ...category.toObject(),
+        id: category._id.toString(),
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -106,9 +133,6 @@ exports.remove = async (req, res, next) => {
     const category = await Category.findOne({ _id: req.params.id, user: req.user._id });
     if (!category) {
       return res.status(404).json({ success: false, message: "Category not found" });
-    }
-    if (category.isDefault) {
-      return res.status(403).json({ success: false, message: "Default categories cannot be deleted" });
     }
 
     category.isDeleted = true;
