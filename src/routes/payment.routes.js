@@ -7,5 +7,7 @@ router.use(protect);
 
 router.post("/checkout", paymentController.processCheckout);
 router.get("/status", paymentController.getSubscriptionStatus);
+router.get("/my-payments", paymentController.getMyPayments);
+router.get("/all-payments", paymentController.getAllPayments);
 
 module.exports = router;

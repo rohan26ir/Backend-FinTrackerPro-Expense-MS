@@ -33,10 +33,7 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-      cb(new Error(`CORS blocked: ${origin}`));
-    },
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -51,8 +48,9 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "FinTracker API is running",
-    version: "1.0.0",
+    message: "🚀 FinTracker API is running live!",
+    status: "healthy",
+    endpoints: "/api",
     timestamp: new Date().toISOString(),
   });
 });

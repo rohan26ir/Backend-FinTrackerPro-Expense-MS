@@ -67,12 +67,12 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["owner", "admin", "member"],
+      enum: ["owner", "admin", "moderator", "member"],
       default: "member",
     },
     plan: {
       type: String,
-      enum: ["free", "pro", "enterprise"],
+      enum: ["free", "pro", "premium", "enterprise"],
       default: "free",
     },
     password: {
@@ -88,6 +88,9 @@ const userSchema = new mongoose.Schema(
     resetOtp: { type: String, select: false },
     resetOtpExpiry: { type: Date, select: false },
     isActive: { type: Boolean, default: true },
+    isTwoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String, default: "", select: false },
+    planExpiresAt: { type: Date },
   },
   { timestamps: true }
 );

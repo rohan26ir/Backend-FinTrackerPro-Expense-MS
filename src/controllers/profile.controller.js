@@ -1,11 +1,9 @@
 const User = require("../models/User");
 const Transaction = require("../models/Transaction");
-const Category = require("../models/Category");
 const Budget = require("../models/Budget");
 const Saving = require("../models/Saving");
 const Bill = require("../models/Bill");
 const Notification = require("../models/Notification");
-const Card = require("../models/Card");
 
 /**
  * GET /api/profile
@@ -153,12 +151,10 @@ exports.deleteAccount = async (req, res, next) => {
     const uid = req.user._id;
     await Promise.all([
       Transaction.deleteMany({ user: uid }),
-      Category.deleteMany({ user: uid }),
       Budget.deleteMany({ user: uid }),
       Saving.deleteMany({ user: uid }),
       Bill.deleteMany({ user: uid }),
       Notification.deleteMany({ user: uid }),
-      Card.deleteMany({ user: uid }),
       User.findByIdAndDelete(uid),
     ]);
 

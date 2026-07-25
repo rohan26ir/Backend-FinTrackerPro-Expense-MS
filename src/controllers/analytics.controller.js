@@ -23,8 +23,23 @@ exports.dashboard = async (req, res, next) => {
 
     const aggregate = async (start, end) =>
       Transaction.aggregate([
-        { $match: { user: userId, date: { $gte: start, $lte: end }, isDeleted: false } },
-        { $group: { _id: "$type", total: { $sum: "$amount" }, count: { $sum: 1 } } },
+        {
+          $match: {
+            user: userId,
+            isDeleted: { $ne: true },
+            $or: [
+              { date: { $gte: start, $lte: end } },
+              { createdAt: { $gte: start, $lte: end } },
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: { $toLower: "$type" },
+            total: { $sum: "$amount" },
+            count: { $sum: 1 },
+          },
+        },
       ]);
 
     const [current, previous] = await Promise.all([
@@ -32,7 +47,7 @@ exports.dashboard = async (req, res, next) => {
       aggregate(prevStart, prevEnd),
     ]);
 
-    const get = (arr, type) => arr.find((r) => r._id === type) || { total: 0, count: 0 };
+    const get = (arr, type) => arr.find((r) => String(r._id).toLowerCase() === type) || { total: 0, count: 0 };
 
     const curIncome  = get(current, "income");
     const curExpense = get(current, "expense");
@@ -43,14 +58,19 @@ exports.dashboard = async (req, res, next) => {
       prev.total === 0 ? null : Math.round(((cur.total - prev.total) / prev.total) * 100);
 
     // Total all-time for savings calculation
-    const [allTime] = await Transaction.aggregate([
-      { $match: { user: userId, isDeleted: false } },
-      { $group: { _id: "$type", total: { $sum: "$amount" } } },
-    ]).then((r) => [r]);
+    const allTime = await Transaction.aggregate([
+      { $match: { user: userId, isDeleted: { $ne: true } } },
+      {
+        $group: {
+          _id: { $toLower: "$type" },
+          total: { $sum: "$amount" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
 
-    const allTimeArr = Array.isArray(allTime) ? allTime : [];
-    const totalIncome  = (allTimeArr.find ? allTimeArr.find((r) => r._id === "income")?.total  : 0) || 0;
-    const totalExpense = (allTimeArr.find ? allTimeArr.find((r) => r._id === "expense")?.total : 0) || 0;
+    const totalIncome  = get(allTime, "income").total;
+    const totalExpense = get(allTime, "expense").total;
 
     res.json({
       success: true,
@@ -63,7 +83,7 @@ exports.dashboard = async (req, res, next) => {
         expenseChange:  pctChange(curExpense, prevExpense),
         allTimeIncome:  totalIncome,
         allTimeExpense: totalExpense,
-        totalSavings:   totalIncome - totalExpense,
+        totalSavings:   Math.max(0, totalIncome - totalExpense),
         currentBalance: totalIncome - totalExpense,
       },
     });
@@ -89,16 +109,15 @@ exports.chart = async (req, res, next) => {
       {
         $match: {
           user: userId,
-          date: { $gte: startDate },
-          isDeleted: false,
+          isDeleted: { $ne: true },
         },
       },
       {
         $group: {
           _id: {
-            year:  { $year: "$date" },
-            month: { $month: "$date" },
-            type:  "$type",
+            year:  { $year: { $ifNull: ["$date", "$createdAt"] } },
+            month: { $month: { $ifNull: ["$date", "$createdAt"] } },
+            type:  { $toLower: "$type" },
           },
           total: { $sum: "$amount" },
         },
@@ -115,8 +134,8 @@ exports.chart = async (req, res, next) => {
       const m = d.getMonth() + 1;
       const label = MONTHS[d.getMonth()];
 
-      const income  = data.find((r) => r._id.year === y && r._id.month === m && r._id.type === "income")?.total  || 0;
-      const expense = data.find((r) => r._id.year === y && r._id.month === m && r._id.type === "expense")?.total || 0;
+      const income  = data.find((r) => r._id.year === y && r._id.month === m && String(r._id.type).toLowerCase() === "income")?.total  || 0;
+      const expense = data.find((r) => r._id.year === y && r._id.month === m && String(r._id.type).toLowerCase() === "expense")?.total || 0;
 
       result.push({ name: label, income, expense, month: m, year: y });
     }
@@ -134,24 +153,17 @@ exports.chart = async (req, res, next) => {
  */
 exports.byCategory = async (req, res, next) => {
   try {
-    const now = new Date();
-    const year  = parseInt(req.query.year)  || now.getFullYear();
-    const month = parseInt(req.query.month) || now.getMonth() + 1;
-    const type  = req.query.type === "income" ? "income" : "expense";
-
     const userId = new mongoose.Types.ObjectId(req.user._id);
-    const start = new Date(year, month - 1, 1);
-    const end   = new Date(year, month, 0, 23, 59, 59, 999);
 
     const data = await Transaction.aggregate([
-      { $match: { user: userId, type, date: { $gte: start, $lte: end }, isDeleted: false } },
+      { $match: { user: userId, isDeleted: { $ne: true } } },
       { $group: { _id: "$category", total: { $sum: "$amount" }, count: { $sum: 1 } } },
       { $sort: { total: -1 } },
     ]);
 
     const grand = data.reduce((s, d) => s + d.total, 0);
     const result = data.map((d) => ({
-      category: d._id,
+      category: d._id || "Uncategorized",
       total: d.total,
       count: d.count,
       percentage: grand ? Math.round((d.total / grand) * 100) : 0,

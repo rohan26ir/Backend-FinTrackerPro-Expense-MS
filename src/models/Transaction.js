@@ -49,9 +49,8 @@ transactionSchema.index({ user: 1, date: -1 });
 transactionSchema.index({ user: 1, type: 1, date: -1 });
 
 // ── Soft-delete query helper ──────────────────────────────────────────────────
-transactionSchema.pre(/^find/, function (next) {
+transactionSchema.pre(/^find/, function () {
   this.where({ isDeleted: false });
-  next();
 });
 
 module.exports = mongoose.model("Transaction", transactionSchema);

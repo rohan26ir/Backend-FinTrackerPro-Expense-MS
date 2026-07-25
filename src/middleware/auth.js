@@ -21,9 +21,21 @@ const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: msg });
     }
 
-    const user = await User.findById(decoded.id).select("-password -refreshToken").lean();
+    let user = await User.findById(decoded.id).select("-password -refreshToken").lean();
     if (!user) {
       return res.status(401).json({ success: false, message: "User not found" });
+    }
+
+    // Auto-downgrade to Free plan if subscription period has ended
+    if (user.plan && user.plan !== "free" && user.planExpiresAt && new Date() > new Date(user.planExpiresAt)) {
+      await User.findByIdAndUpdate(user._id, {
+        plan: "free",
+        subscriptionStatus: "expired",
+        planExpiresAt: null,
+      });
+      user.plan = "free";
+      user.subscriptionStatus = "expired";
+      user.planExpiresAt = null;
     }
 
     req.user = user;

@@ -43,6 +43,14 @@ router.post("/logout", protect, ctrl.logout);
 // ── GET /api/auth/me  (protected) ────────────────────────────────────────────
 router.get("/me", protect, ctrl.getMe);
 
+// ── POST /api/auth/change-password  (protected) ─────────────────────────────
+router.post("/change-password", protect, ctrl.changePassword);
+
+// ── 2FA Routes ───────────────────────────────────────────────────────────────
+router.post("/login/2fa-verify", ctrl.verify2FAAndLogin);
+router.post("/2fa/enable", protect, ctrl.enable2FA);
+router.post("/2fa/disable", protect, ctrl.disable2FA);
+
 // ── POST /api/auth/forgot-password ───────────────────────────────────────────
 router.post(
   "/forgot-password",

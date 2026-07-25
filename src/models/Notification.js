@@ -5,18 +5,19 @@ const notificationSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
     },
+    isBroadcast: { type: Boolean, default: false, index: true },
     title: { type: String, required: true, trim: true },
     message: { type: String, required: true, trim: true },
     type: {
       type: String,
-      enum: ["info", "success", "warning", "error", "bill", "budget", "saving"],
+      enum: ["info", "success", "warning", "error", "bill", "budget", "saving", "announcement"],
       default: "info",
     },
     isRead: { type: Boolean, default: false },
-    link: { type: String, default: "" }, // optional deep link e.g. "/dashboard/bills"
+    link: { type: String, default: "" },
     icon: { type: String, default: "Bell" },
   },
   { timestamps: true }
