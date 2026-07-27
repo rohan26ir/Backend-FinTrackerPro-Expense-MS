@@ -3,6 +3,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const errorHandler = require("./middleware/errorHandler");
 const routes = require("./routes");
@@ -11,6 +12,7 @@ const app = express();
 
 // ─── Security ────────────────────────────────────────────────────────────────
 app.use(helmet());
+app.use(cookieParser());
 
 // Rate limiting — 1000 requests per 15 min per IP
 app.use(

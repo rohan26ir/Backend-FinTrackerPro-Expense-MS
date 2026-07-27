@@ -3,64 +3,70 @@
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B-green.svg)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-v5.x-blue.svg)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-brightgreen.svg)](https://www.mongodb.com/)
+[![Stripe](https://img.shields.io/badge/Stripe-v22.x-purple.svg)](https://stripe.com/)
 [![License](https://img.shields.io/badge/License-ISC-yellow.svg)](LICENSE)
 [![Deployment](https://img.shields.io/badge/Vercel-Deployed-black.svg)](https://api-fintrackerpro.vercel.app)
 
-**FinTracker Pro Backend** is a feature-rich, secure, and production-ready RESTful API built with **Node.js**, **Express**, and **MongoDB (Mongoose)**. It serves as the core engine for the FinTracker expense management application, powering user authentication, transaction handling, budget tracking, bill management, credit/debit card tracking, savings goal management, custom category organization, analytics, notifications, and data exports.
+**FinTracker Pro Backend** is a feature-rich, high-performance, secure RESTful API built using **Node.js**, **Express.js (v5)**, and **MongoDB (Mongoose)**. It serves as the enterprise backend engine powering the FinTracker Pro financial ecosystem — including multi-currency transaction management, budget control, savings goals, investment portfolio tracking, tax deduction management, Stripe subscriptions, 2FA security, support tickets, and analytics.
 
 ---
 
 ## 🌟 Key Features
 
-- **🔐 Robust Authentication & Security**:
-  - Secure JWT authentication using dual token architecture (Short-lived Access Token + Long-lived Refresh Token).
+- **🔐 Dual-Token Auth & 2-Factor Security**:
+  - Short-lived JWT Access Tokens + Long-lived Refresh Tokens.
   - Password hashing with `bcryptjs`.
-  - Password reset via Email & 6-digit OTP powered by `nodemailer`.
-  - Security headers via `helmet` and IP rate-limiting with `express-rate-limit`.
-  - CORS security configured for frontend development and production environments.
+  - 2FA (Two-Factor Authentication) OTP verification flow.
+  - Password reset via 6-digit OTP email powered by `nodemailer`.
+  - Security headers via `helmet` and IP rate-limiting (`express-rate-limit`).
 
-- **💸 Transaction Management**:
-  - Full CRUD for income and expense transactions.
-  - Advanced filtering (type, category, date range), search, and pagination.
-  - Soft deletion support (`isDeleted` flag) to preserve historic integrity.
-  - Instant transaction summaries and aggregations.
+- **💸 Transaction Engine**:
+  - Full CRUD operations for income and expense transactions.
+  - Advanced search, date range filtering, category/type filtering, and pagination.
+  - Soft deletion support (`isDeleted` flag) for transactional history auditability.
+  - Real-time financial summary aggregations.
 
 - **🎯 Budgets & Savings Goals**:
-  - Category-based budget creation (monthly/yearly) with target spending limits and auto-calculated spent progress.
-  - Savings goals with target deadlines, progress tracking, and contributions.
+  - Category-based monthly and yearly budget planning with active expense tracking.
+  - Savings goals with target limits, contribution deposits, and deadline tracking.
 
-- **🔔 Bills & Reminders**:
-  - Track upcoming, overdue, and paid bills with customizable reminder days.
-  - Real-time notification creation for bill alerts and activity updates.
+- **📊 Investment Portfolio & Asset Tracking**:
+  - Track stocks, crypto, mutual funds, real estate, and bonds.
+  - Total portfolio valuation, purchase price tracking, and return on investment (ROI) metrics.
 
-- **💳 Cards & Accounts Management**:
-  - Manage multiple bank cards, credit cards, and debit accounts with balances and currency preference.
+- **🧾 Tax Management & Deductions**:
+  - Dedicated tax deduction tracking and financial year tax expense estimates.
 
-- **📊 Comprehensive Analytics**:
-  - Dashboard analytics overview (total balance, total income, total expenses, net savings rate).
-  - Monthly income vs. expense chart data.
-  - Expense breakdown by category.
-  - Daily trend calculations over custom date ranges.
+- **💳 Stripe Payments & Subscriptions**:
+  - Integrated Stripe checkout sessions for premium plan billing.
+  - Subscription status tracking and transaction receipt histories.
 
-- **📁 Data Export**:
-  - One-click export of transaction history to CSV and JSON formats.
+- **🔔 Bills & Intelligent Notifications**:
+  - Upcoming, overdue, and paid bill tracker with customizable reminders.
+  - In-app real-time notifications for system alerts, payments, and bill due dates.
 
-- **👥 Public Directory & Profiles**:
-  - User profiles with total activity statistics.
-  - Public directory listing for user discoverability.
+- **🎧 Support Tickets & Public Contact Form**:
+  - Help Desk tickethub with threaded replies between members and support admins.
+  - Public contact message ingestion and administrative reply system.
+
+- **📈 Analytics & Financial Reporting**:
+  - Dashboard analytics (net cashflow, monthly trends, category spending distribution).
+  - Downloadable financial summary reports.
+  - Instant raw data exports to **CSV** and **JSON** formats.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Dependencies
 
-- **Runtime**: Node.js
-- **Framework**: Express.js (v5.x)
-- **Database**: MongoDB with Mongoose ORM
-- **Authentication**: JSON Web Tokens (`jsonwebtoken`), `bcryptjs`
+- **Runtime**: [Node.js](https://nodejs.org/) (v18+ recommended)
+- **Framework**: [Express.js](https://express.js.org/) (v5.x)
+- **Database**: [MongoDB](https://www.mongodb.com/) with [Mongoose](https://mongoosejs.com/) ORM
+- **Authentication**: `jsonwebtoken`, `bcryptjs`
 - **Validation**: `express-validator`
-- **Email Service**: `nodemailer` (SMTP / Gmail)
-- **Security**: `helmet`, `express-rate-limit`, `cors`
-- **Deployment**: Vercel Serverless Functions / Node.js Host
+- **Email Delivery**: `nodemailer` (SMTP / Gmail Integration)
+- **Payment Processing**: `stripe` SDK
+- **Security & Middleware**: `helmet`, `express-rate-limit`, `cors`, `dotenv`
+- **Deployment Platform**: Vercel Serverless Functions / Node.js Server Environment
 
 ---
 
@@ -68,20 +74,21 @@
 
 ```text
 FinTracker-backend/
-├── .env                  # Local environment configuration
-├── .gitignore            # Git ignore rules
-├── LICENSE               # ISC License
+├── .env                  # Local environment configuration (git-ignored)
+├── .env.example          # Template for environment configuration
+├── .gitignore            # Git exclusion rules
+├── LICENSE               # ISC License file
 ├── README.md             # Project documentation
-├── package.json          # Node.js dependencies and scripts
-├── server.js             # Server entry point & DB connection initialization
-├── vercel.json           # Vercel deployment configuration
+├── package.json          # Node.js dependencies and script definitions
+├── server.js             # Entry point & MongoDB connection setup
+├── vercel.json           # Vercel serverless build & route rules
 └── src/
-    ├── app.js            # Express application setup, security, and middleware
+    ├── app.js            # Express app init, middleware, CORS & security
     ├── config/
-    │   └── db.js         # MongoDB connection configuration
-    ├── controllers/      # Route handler logic (auth, transactions, budgets, etc.)
-    ├── middleware/       # Custom middleware (auth, validate, errorHandler)
-    ├── models/           # Mongoose database schemas (User, Transaction, Budget, etc.)
+    │   └── db.js         # Mongoose connection logic
+    ├── controllers/      # Route controllers (auth, transactions, budgets, etc.)
+    ├── middleware/       # Custom middleware (auth guard, validation, error handler)
+    ├── models/           # Mongoose schemas (User, Transaction, Investment, etc.)
     └── routes/           # Express router endpoints
 ```
 
@@ -89,28 +96,34 @@ FinTracker-backend/
 
 ## ⚙️ Environment Variables
 
-Create a `.env` file in the project root based on the following template:
+Create a `.env` file in the root of the project using the template below:
 
 ```env
-# Server Configuration
+# Server Port
 PORT=5000
+
+# Frontend URL (For CORS whitelist)
 CLIENT_URL=http://localhost:3000
 
-# Database Configuration
-MONGO_URI=mongodb://127.0.0.1:27017/fintracker
+# MongoDB Database Connection String
+MONGO_URI=mongodb://127.0.0.1:27017/fintrackerpro
 
-# JWT Authentication Secrets & Expirations
+# JWT Authentication Configuration
 JWT_ACCESS_SECRET=your_super_secret_access_key_here
-JWT_REFRESH_SECRET=your_super_secret_refresh_key_here
 JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_SECRET=your_super_secret_refresh_key_here
 JWT_REFRESH_EXPIRES=7d
 
-# Email SMTP Settings (for Password Reset & OTP)
+# Stripe Payment Gateway Credentials
+STRIPE_SECRET_KEY=sk_test_51...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Email SMTP Settings (For 2FA, OTP & Password Reset)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
-EMAIL_FROM=FinTracker <noreply@fintracker.com>
+EMAIL_FROM=FinTracker Pro <noreply@fintracker.com>
 ```
 
 ---
@@ -119,298 +132,195 @@ EMAIL_FROM=FinTracker <noreply@fintracker.com>
 
 ### Prerequisites
 
-- **Node.js** (v18.x or higher)
-- **MongoDB** (Local instance or MongoDB Atlas connection string)
-- **npm** or **yarn**
+- **Node.js** v18.0.0 or higher
+- **MongoDB** (Local database or MongoDB Atlas cluster connection)
+- **npm** (or `yarn` / `pnpm`)
 
-### Installation
+### Installation & Setup
 
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/your-username/FinTracker-backend.git
    cd FinTracker-backend
    ```
 
-2. Install dependencies:
+2. **Install project dependencies**:
    ```bash
    npm install
    ```
 
-3. Setup environment variables:
-   Create a `.env` file in the project root and populate it as shown in the [Environment Variables](#️-environment-variables) section.
+3. **Configure environment settings**:
+   Copy `.env.example` to `.env` and fill in your database credentials and secret keys.
+   ```bash
+   cp .env.example .env
+   ```
 
-4. Start the development server:
+4. **Launch development server** (with auto-reload via `nodemon`):
    ```bash
    npm run dev
    ```
 
-5. For production execution:
+5. **Launch production server**:
    ```bash
    npm start
    ```
 
-The API server will run at `http://localhost:5000` by default.
+The backend server will run on `http://localhost:5000` by default.
 
 ---
 
 ## 🔒 Authentication Flow
 
-Most endpoints are protected and require a Bearer token in the `Authorization` header.
+Most endpoints require a valid JSON Web Token sent via the `Authorization` header.
 
-### Header Format
-
+### Request Header Format
 ```http
 Authorization: Bearer <accessToken>
 ```
 
-### Flow Checklist:
-1. Register (`POST /api/auth/register`) or Login (`POST /api/auth/login`).
-2. Receive `accessToken` and `refreshToken` in the response.
-3. Attach `Bearer <accessToken>` to headers for subsequent protected requests.
-4. When `accessToken` expires, call `POST /api/auth/refresh` with your `refreshToken` to acquire a new access token without requiring re-login.
+### Auth Lifecycle:
+1. **Login/Register**: Request `/api/auth/login` or `/api/auth/register`.
+2. **2FA Verification**: If 2FA is enabled on the account, complete `/api/auth/login/2fa-verify` using the temporary token and OTP code.
+3. **Token Storage**: Save `accessToken` and `refreshToken`.
+4. **Token Refreshing**: When requests fail with `401 Unauthorized`, request a new access token via `POST /api/auth/refresh` passing `{ refreshToken }`.
 
 ---
 
-## 📑 API Endpoint Summary
+## 📑 Complete API Endpoint Reference
 
-### Base & Health Check
-| Method | Endpoint | Description | Protected |
+### 🌐 Base & System Health
+| Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `GET` | `/` | API Health & status check | No |
-
-### Authentication (`/api/auth`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Register a new user account | No |
-| `POST` | `/api/auth/login` | Login user & issue access/refresh tokens | No |
-| `POST` | `/api/auth/refresh` | Obtain a new access token using refresh token | No |
-| `POST` | `/api/auth/logout` | Invalidate/logout current user session | Yes |
-| `GET`  | `/api/auth/me` | Fetch authenticated user profile details | Yes |
-| `POST` | `/api/auth/forgot-password` | Send 6-digit OTP for password reset | No |
-| `POST` | `/api/auth/reset-password` | Reset password using verified OTP | No |
-
-### Users Directory (`/api/users`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET` | `/api/users` | List all public user profiles | No |
-| `GET` | `/api/users/:username` | Fetch specific user public profile by username | No |
-
-### User Profile (`/api/profile`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/profile` | Get logged-in user profile & account stats | Yes |
-| `PATCH`  | `/api/profile` | Update profile information (name, avatar, currency) | Yes |
-| `PATCH`  | `/api/profile/change-password` | Change current password | Yes |
-| `DELETE` | `/api/profile` | Permanently delete account and all associated data | Yes |
-
-### Transactions (`/api/transactions`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/transactions` | List transactions (filtering, search, pagination) | Yes |
-| `POST`   | `/api/transactions` | Create a new income or expense transaction | Yes |
-| `GET`    | `/api/transactions/summary` | Get income/expense total summary | Yes |
-| `GET`    | `/api/transactions/:id` | Fetch single transaction details by ID | Yes |
-| `PATCH`  | `/api/transactions/:id` | Update transaction record | Yes |
-| `DELETE` | `/api/transactions/:id` | Soft delete a transaction | Yes |
-
-### Budgets (`/api/budgets`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/budgets` | Fetch active budgets with spent total calculations | Yes |
-| `POST`   | `/api/budgets` | Set a category budget limit | Yes |
-| `PATCH`  | `/api/budgets/:id` | Update budget details or limit | Yes |
-| `DELETE` | `/api/budgets/:id` | Delete budget | Yes |
-
-### Bills (`/api/bills`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/bills` | Fetch bills (filter: `upcoming`, `overdue`, `paid`, `all`) | Yes |
-| `POST`   | `/api/bills` | Create a bill reminder | Yes |
-| `PATCH`  | `/api/bills/:id` | Update bill status or details | Yes |
-| `DELETE` | `/api/bills/:id` | Delete a bill | Yes |
-
-### Cards & Accounts (`/api/cards`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/cards` | List all saved cards/accounts | Yes |
-| `POST`   | `/api/cards` | Add new debit/credit card or bank account | Yes |
-| `PATCH`  | `/api/cards/:id` | Update card information | Yes |
-| `DELETE` | `/api/cards/:id` | Delete card record | Yes |
-
-### Savings Goals (`/api/savings`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/savings` | Get all savings goals | Yes |
-| `POST`   | `/api/savings` | Create a new savings goal | Yes |
-| `PATCH`  | `/api/savings/:id` | Update savings goal or contribute funds | Yes |
-| `DELETE` | `/api/savings/:id` | Delete savings goal | Yes |
-
-### Categories (`/api/categories`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/categories` | Get custom & default categories (`type=income\|expense\|both`) | Yes |
-| `POST`   | `/api/categories` | Create custom category | Yes |
-| `PATCH`  | `/api/categories/:id` | Edit custom category | Yes |
-| `DELETE` | `/api/categories/:id` | Remove custom category | Yes |
-
-### Notifications (`/api/notifications`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET`    | `/api/notifications` | Get notifications (`?unread=true` filter optional) | Yes |
-| `PATCH`  | `/api/notifications/:id/read` | Mark single notification as read | Yes |
-| `PATCH`  | `/api/notifications/read-all` | Mark all notifications as read | Yes |
-| `DELETE` | `/api/notifications/:id` | Remove specific notification | Yes |
-| `DELETE` | `/api/notifications` | Clear all notifications | Yes |
-
-### Analytics (`/api/analytics`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET` | `/api/analytics/dashboard` | Dashboard totals, net balance, and savings overview | Yes |
-| `GET` | `/api/analytics/chart` | Monthly income vs. expense chart series | Yes |
-| `GET` | `/api/analytics/by-category` | Category-wise expense breakdown statistics | Yes |
-| `GET` | `/api/analytics/trends` | Daily cash flow trend data over custom range | Yes |
-
-### Data Export (`/api/export`)
-| Method | Endpoint | Description | Protected |
-|---|---|---|---|
-| `GET` | `/api/export/csv` | Download transaction records as `.csv` file | Yes |
-| `GET` | `/api/export/json` | Download transaction records as structured JSON | Yes |
+| `GET` | `/` | API status health check | ❌ Public |
 
 ---
 
-## 📝 Example Request & Response Payloads
-
-### 1. User Registration (`POST /api/auth/register`)
-
-**Request Payload**:
-```json
-{
-  "name": "Rohan",
-  "email": "rohan@example.com",
-  "password": "SecurePassword123"
-}
-```
-
-**Response Payload**:
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "user": {
-      "id": "66a01b2c3d4e5f6a7b8c9d0e",
-      "name": "Rohan",
-      "email": "rohan@example.com",
-      "currency": "BDT"
-    },
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-  }
-}
-```
+### 🔑 Authentication (`/api/auth`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user | ❌ Public |
+| `POST` | `/api/auth/login` | Login user & issue tokens | ❌ Public |
+| `POST` | `/api/auth/login/2fa-verify` | Verify 2FA code during login | ❌ Public |
+| `POST` | `/api/auth/refresh` | Issue new access token using refresh token | ❌ Public |
+| `POST` | `/api/auth/logout` | Logout and invalidate session | 🔒 Auth |
+| `GET`  | `/api/auth/me` | Fetch authenticated user data | 🔒 Auth |
+| `POST` | `/api/auth/change-password` | Update account password | 🔒 Auth |
+| `POST` | `/api/auth/2fa/enable` | Enable 2FA authentication | 🔒 Auth |
+| `POST` | `/api/auth/2fa/disable` | Disable 2FA authentication | 🔒 Auth |
+| `POST` | `/api/auth/forgot-password` | Send password reset OTP email | ❌ Public |
+| `POST` | `/api/auth/reset-password` | Reset password using verified OTP | ❌ Public |
 
 ---
 
-### 2. Create Transaction (`POST /api/transactions`)
-
-**Request Payload**:
-```json
-{
-  "type": "expense",
-  "amount": 750,
-  "currency": "BDT",
-  "category": "Food",
-  "account": "Cash",
-  "date": "2026-07-25",
-  "recurrence": "None",
-  "note": "Weekend dinner with friends",
-  "tags": ["food", "weekend"]
-}
-```
-
-**Response Payload**:
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "66a02c3d4e5f6a7b8c9d0e1f",
-    "user": "66a01b2c3d4e5f6a7b8c9d0e",
-    "type": "expense",
-    "amount": 750,
-    "currency": "BDT",
-    "category": "Food",
-    "account": "Cash",
-    "date": "2026-07-25T00:00:00.000Z",
-    "recurrence": "None",
-    "note": "Weekend dinner with friends",
-    "tags": ["food", "weekend"],
-    "isDeleted": false,
-    "createdAt": "2026-07-25T02:59:30.000Z",
-    "updatedAt": "2026-07-25T02:59:30.000Z"
-  }
-}
-```
+### 👤 Profile & User Directory (`/api/profile` & `/api/users`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`    | `/api/profile` | Get full user profile and account statistics | 🔒 Auth |
+| `PATCH`  | `/api/profile` | Update profile information | 🔒 Auth |
+| `DELETE` | `/api/profile` | Delete user account and linked data | 🔒 Auth |
+| `GET`    | `/api/users` | List public user profiles | ❌ Public |
+| `GET`    | `/api/users/:username` | View specific user public profile | ❌ Public |
 
 ---
 
-### 3. Create Budget (`POST /api/budgets`)
-
-**Request Payload**:
-```json
-{
-  "category": "Food",
-  "amount": 12000,
-  "currency": "BDT",
-  "period": "monthly",
-  "month": 7,
-  "year": 2026,
-  "color": "#F97316",
-  "icon": "Utensils"
-}
-```
+### 💸 Transactions (`/api/transactions`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`    | `/api/transactions` | Query transactions (filters, search, pagination) | 🔒 Auth |
+| `POST`   | `/api/transactions` | Create income or expense record | 🔒 Auth |
+| `GET`    | `/api/transactions/summary` | Get aggregated financial summary | 🔒 Auth |
+| `GET`    | `/api/transactions/:id` | Fetch details of a transaction | 🔒 Auth |
+| `PATCH`  | `/api/transactions/:id` | Update transaction record | 🔒 Auth |
+| `DELETE` | `/api/transactions/:id` | Soft-delete a transaction | 🔒 Auth |
 
 ---
 
-### 4. Response Conventions
-
-All API endpoints strictly adhere to uniform JSON responses:
-
-**Success Standard**:
-```json
-{
-  "success": true,
-  "message": "Optional descriptive success message",
-  "data": {}
-}
-```
-
-**Error Standard**:
-```json
-{
-  "success": false,
-  "message": "Error description or validation message",
-  "errors": []
-}
-```
+### 📊 Budgets & Savings (`/api/budgets` & `/api/savings`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`    | `/api/budgets` | Get category budgets and auto-calculated spent totals | 🔒 Auth |
+| `POST`   | `/api/budgets` | Set category budget limit | 🔒 Auth |
+| `PATCH`  | `/api/budgets/:id` | Modify budget limit or period | 🔒 Auth |
+| `DELETE` | `/api/budgets/:id` | Remove budget | 🔒 Auth |
+| `GET`    | `/api/savings` | Get active savings goals | 🔒 Auth |
+| `POST`   | `/api/savings` | Create a new savings goal | 🔒 Auth |
+| `PATCH`  | `/api/savings/:id` | Contribute funds or update goal | 🔒 Auth |
+| `DELETE` | `/api/savings/:id` | Remove savings goal | 🔒 Auth |
 
 ---
 
-## 🌐 Deployment (Vercel)
+### 📈 Investments & Tax (`/api/investments` & `/api/tax`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`    | `/api/investments` | Retrieve investment portfolio | 🔒 Auth |
+| `POST`   | `/api/investments` | Add new investment asset | 🔒 Auth |
+| `PATCH`  | `/api/investments/:id` | Update asset valuation or quantity | 🔒 Auth |
+| `DELETE` | `/api/investments/:id` | Remove asset from portfolio | 🔒 Auth |
+| `GET`    | `/api/tax` | Get tax overview and summary estimates | 🔒 Auth |
+| `POST`   | `/api/tax/deductions` | Record a tax deduction | 🔒 Auth |
+| `DELETE` | `/api/tax/deductions/:id` | Delete tax deduction record | 🔒 Auth |
 
-This repository is configured for serverless deployment on **Vercel** via `vercel.json`.
+---
 
-1. Install Vercel CLI or connect your Git repository to Vercel.
-2. Configure Environment Variables in the Vercel project settings matching `.env`.
-3. Deploy:
+### 📅 Bills & Payments (`/api/bills` & `/api/payments`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`    | `/api/bills` | List bills (filter by `upcoming`, `overdue`, `paid`) | 🔒 Auth |
+| `POST`   | `/api/bills` | Schedule a new bill reminder | 🔒 Auth |
+| `PATCH`  | `/api/bills/:id` | Update bill status or deadline | 🔒 Auth |
+| `DELETE` | `/api/bills/:id` | Delete a bill reminder | 🔒 Auth |
+| `POST`   | `/api/payments/checkout` | Create a Stripe checkout session | 🔒 Auth |
+| `GET`    | `/api/payments/status` | Check subscription status | 🔒 Auth |
+| `GET`    | `/api/payments/my-payments` | View personal payment history | 🔒 Auth |
+| `GET`    | `/api/payments/all-payments` | Admin view of all payment records | 🔒 Auth |
+
+---
+
+### 🎧 Help Desk & Contact Form (`/api/help` & `/api/contact`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST`   | `/api/help/tickets` | Open a new support ticket | 🔒 Auth |
+| `GET`    | `/api/help/tickets` | List user support tickets | 🔒 Auth |
+| `POST`   | `/api/help/tickets/:id/reply` | Reply to a support ticket thread | 🔒 Auth |
+| `DELETE` | `/api/help/tickets/:id` | Close/Delete support ticket | 🔒 Auth |
+| `GET`    | `/api/help/unread-count` | Fetch unread ticket response count | 🔒 Auth |
+| `POST`   | `/api/contact` | Submit public contact message | ❌ Public |
+| `GET`    | `/api/contact` | Fetch all contact messages (Admin/Mod) | 🔒 Auth |
+| `POST`   | `/api/contact/:id/reply` | Reply to a contact submission | 🔒 Auth |
+| `DELETE` | `/api/contact/:id` | Delete contact message | 🔒 Auth |
+
+---
+
+### 🔔 Notifications & Analytics (`/api/notifications`, `/api/analytics`, `/api/reports`, `/api/export`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET`    | `/api/notifications` | Get in-app notifications (`?unread=true`) | 🔒 Auth |
+| `PATCH`  | `/api/notifications/:id/read` | Mark single notification read | 🔒 Auth |
+| `PATCH`  | `/api/notifications/read-all` | Mark all notifications read | 🔒 Auth |
+| `DELETE` | `/api/notifications/:id` | Delete specific notification | 🔒 Auth |
+| `DELETE` | `/api/notifications` | Clear all user notifications | 🔒 Auth |
+| `GET`    | `/api/analytics/dashboard` | Key performance indicators & totals | 🔒 Auth |
+| `GET`    | `/api/analytics/chart` | Monthly income vs expense chart series | 🔒 Auth |
+| `GET`    | `/api/analytics/by-category` | Expense breakdown by category | 🔒 Auth |
+| `GET`    | `/api/analytics/trends` | Cash flow trends over custom timeframes | 🔒 Auth |
+| `GET`    | `/api/reports/summary` | Comprehensive financial report | 🔒 Auth |
+| `GET`    | `/api/export/csv` | Export transactions as `.csv` file | 🔒 Auth |
+| `GET`    | `/api/export/json` | Export transactions as `.json` file | 🔒 Auth |
+
+---
+
+## 🌐 Production Deployment (Vercel)
+
+This application is ready for Vercel Serverless deployment using the included `vercel.json` file.
+
+1. **Deploy using Vercel CLI**:
    ```bash
    vercel --prod
    ```
-
-Live API Base URL: `https://api-fintrackerpro.vercel.app`
+2. **Environment Configuration**: Set all required variables from `.env` in your Vercel Dashboard under **Project Settings > Environment Variables**.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [ISC License](LICENSE).
-
+This repository is licensed under the [ISC License](LICENSE).

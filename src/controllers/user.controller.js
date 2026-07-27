@@ -35,7 +35,17 @@ exports.updateUser = async (req, res, next) => {
 
     const updates = {};
     if (role) updates.role = role;
-    if (plan) updates.plan = plan;
+    if (plan) {
+      updates.plan = plan;
+      if (plan === "free") {
+        updates.planExpiresAt = null;
+      } else if (!req.body.planExpiresAt) {
+        updates.planExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      }
+    }
+    if (req.body.planExpiresAt !== undefined) {
+      updates.planExpiresAt = req.body.planExpiresAt ? new Date(req.body.planExpiresAt) : null;
+    }
     if (typeof isActive === "boolean") updates.isActive = isActive;
 
     const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true })

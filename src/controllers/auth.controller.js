@@ -24,9 +24,18 @@ const sendTokens = async (res, user, statusCode = 200) => {
     user.plan = "premium";
   }
 
-  // Persist hashed refresh token
+  // Persist refresh token
   user.refreshToken = refreshToken;
   await user.save({ validateBeforeSave: false });
+
+  // Set secure HttpOnly cookie for Refresh Token
+  const isProd = process.env.NODE_ENV === "production";
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "strict" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
 
   // Build full user object (excluding sensitive fields)
   const userObj = user.toObject ? user.toObject() : user._doc;
@@ -268,7 +277,7 @@ exports.disable2FA = async (req, res, next) => {
  */
 exports.refresh = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!refreshToken) {
       return res.status(401).json({ success: false, message: "Refresh token required" });
     }
@@ -297,7 +306,15 @@ exports.refresh = async (req, res, next) => {
  */
 exports.logout = async (req, res, next) => {
   try {
-    await User.findByIdAndUpdate(req.user._id, { refreshToken: "" });
+    if (req.user?._id) {
+      await User.findByIdAndUpdate(req.user._id, { refreshToken: "" });
+    }
+    const isProd = process.env.NODE_ENV === "production";
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "strict" : "lax",
+    });
     res.json({ success: true, message: "Logged out successfully" });
   } catch (err) {
     next(err);

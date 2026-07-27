@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Payment = require("../models/Payment");
 const nodemailer = require("nodemailer");
+const pdfGenerator = require("../utils/pdfGenerator");
 
 const getStripeInstance = () => {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -152,26 +153,55 @@ exports.processCheckout = async (req, res, next) => {
       { new: true }
     ).select("-password -refreshToken");
 
-    // Dispatch Official HTML Email Receipt via Nodemailer
+    // Dispatch Official HTML Email Receipt with Attached PDF via Nodemailer
     try {
       const transporter = createMailTransport();
       const fromEmail = process.env.EMAIL_FROM || `"DailyFinTracker Billing" <${process.env.EMAIL_USER}>`;
+
+      // Generate PDF Payment Receipt Attachment Buffer
+      let pdfAttachmentBuffer = null;
+      try {
+        pdfAttachmentBuffer = await pdfGenerator.generateReceiptPDF({
+          userName: user.name,
+          userEmail: user.email,
+          plan: targetPlan,
+          billingCycle: cycle,
+          amount: Number(proratedAmount.toFixed(2)),
+          currency: "USD",
+          stripePaymentIntentId: transactionId,
+          createdAt: new Date(),
+        });
+      } catch (pdfErr) {
+        console.error("❌ PDF Receipt Generation Error:", pdfErr.message);
+      }
+
+      const attachments = pdfAttachmentBuffer
+        ? [
+            {
+              filename: `DailyFinTracker_Payment_Receipt_${targetPlan.toUpperCase()}.pdf`,
+              content: pdfAttachmentBuffer,
+              contentType: "application/pdf",
+            },
+          ]
+        : [];
 
       await transporter.sendMail({
         from: fromEmail,
         to: user.email,
         subject: `DailyFinTracker Pro — Payment Receipt & ${targetPlan.toUpperCase()} Plan Activation`,
+        attachments,
         html: `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
             <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; text-align: center; border-radius: 12px; color: #ffffff;">
               <h2 style="margin: 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Subscription Confirmed</h2>
-              <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">DailyFinTracker Pro Payment Receipt</p>
+              <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">DailyFinTracker Pro Payment Receipt Attached</p>
             </div>
             
             <div style="padding: 24px 8px;">
               <p style="font-size: 15px;">Hello <strong>${user.name}</strong>,</p>
               
               <p style="font-size: 14px; color: #475569;">Thank you for your payment! Your account has been successfully upgraded to the <strong>${targetPlan.toUpperCase()} Plan</strong>.</p>
+              <p style="font-size: 13px; color: #10b981; font-weight: bold;">📎 Your official PDF Payment Receipt is attached to this email.</p>
               
               <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 18px; margin: 20px 0; border-radius: 12px;">
                 <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
@@ -258,10 +288,14 @@ exports.getAllPayments = async (req, res, next) => {
       return res.status(403).json({ success: false, message: "Access denied. Admin privileges required." });
     }
 
-    const payments = await Payment.find().sort({ createdAt: -1 }).populate("user", "name email").lean();
+    const payments = await Payment.find().sort({ createdAt: -1 }).populate("user", "name email avatar").lean();
     res.json({
       success: true,
-      data: payments.map((p) => ({ ...p, id: p._id.toString() })),
+      data: payments.map((p) => ({
+        ...p,
+        id: p._id.toString(),
+        userAvatar: (p.user && typeof p.user === "object" && p.user.avatar) ? p.user.avatar : null,
+      })),
     });
   } catch (err) {
     next(err);

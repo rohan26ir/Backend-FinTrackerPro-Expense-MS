@@ -118,14 +118,17 @@ exports.deleteTicket = async (req, res, next) => {
     const user = req.user;
     const isAdminOrMod = user.role === "admin" || user.role === "moderator" || user.email.toLowerCase() === "rohan26ir@gmail.com";
 
-    if (!isAdminOrMod) {
-      return res.status(403).json({ success: false, message: "Access denied. Admin or Moderator privileges required to delete support tickets." });
-    }
-
-    const ticket = await SupportTicket.findByIdAndDelete(id);
+    const ticket = await SupportTicket.findById(id);
     if (!ticket) {
       return res.status(404).json({ success: false, message: "Support ticket not found." });
     }
+
+    const isOwner = ticket.user && ticket.user.toString() === user._id.toString();
+    if (!isAdminOrMod && !isOwner) {
+      return res.status(403).json({ success: false, message: "Access denied. You can only delete your own support tickets." });
+    }
+
+    await SupportTicket.findByIdAndDelete(id);
 
     res.json({ success: true, message: "Support ticket deleted successfully." });
   } catch (err) {

@@ -19,10 +19,16 @@ const reportRoutes = require("./report.routes");
 const paymentRoutes = require("./payment.routes");
 const helpRoutes = require("./help.routes");
 const contactRoutes = require("./contact.routes");
+const accountRoutes = require("./account.routes");
+const systemHealthRoutes = require("./system-health.routes");
+const zakatRoutes = require("./zakat.routes");
 
 // Mount routes
 router.use("/auth", authRoutes);
-router.use("/users", userRoutes); 
+router.use("/users", userRoutes);
+router.use("/accounts", accountRoutes);
+router.use("/system-health", systemHealthRoutes);
+router.use("/zakat", zakatRoutes);
 router.use("/bills", billRoutes);
 router.use("/budgets", budgetRoutes);
 router.use("/notifications", notificationRoutes);
