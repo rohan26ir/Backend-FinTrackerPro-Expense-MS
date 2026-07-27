@@ -34,8 +34,8 @@ const createMailTransport = () => {
 };
 
 const PLAN_PRICES = {
-  monthly: { free: 0, pro: 9.99, premium: 19.99, enterprise: 19.99 },
-  yearly: { free: 0, pro: 7.99, premium: 14.99, enterprise: 14.99 },
+  monthly: { free: 0, premium: 14.99 },
+  yearly: { free: 0, premium: 9.99 },
 };
 
 /**
@@ -58,7 +58,7 @@ exports.processCheckout = async (req, res, next) => {
     }
 
     const currentPlan = (user.plan || "free").toLowerCase();
-    const targetPlan = (plan || "pro").toLowerCase();
+    const targetPlan = (plan || "premium").toLowerCase() === "free" ? "free" : "premium";
     const cycle = billingCycle === "monthly" ? "monthly" : "yearly";
 
     // 2. Duplicate Active Plan Block

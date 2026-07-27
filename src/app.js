@@ -28,9 +28,10 @@ app.use(
 
 // ─── CORS Configuration ──────────────────────────────────────────────────────
 const allowedOrigins = [
-  "http://localhost:3000",     // Development
+  "http://localhost:3000", // Development
   "http://localhost:3001",
-  process.env.CLIENT_URL,     // Production frontend (set in Vercel)
+  "https://dailyfintracker.netlify.app",
+  process.env.CLIENT_URL, // Production frontend
 ];
 
 app.use(

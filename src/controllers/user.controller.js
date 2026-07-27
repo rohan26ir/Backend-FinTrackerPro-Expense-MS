@@ -97,8 +97,8 @@ exports.getPublicUser = async (req, res, next) => {
       { id: "verified", name: "Verified Account", desc: "Identity & Security Verified", icon: "ShieldCheck", color: "emerald" },
     ];
 
-    if (user.plan === "pro" || user.plan === "premium") {
-      earnedBadges.push({ id: "pro", name: "Pro Tier Member", desc: "Premium Feature Access", icon: "Crown", color: "amber" });
+    if (user.plan === "premium") {
+      earnedBadges.push({ id: "premium", name: "Premium Member", desc: "Premium Feature Access", icon: "Crown", color: "amber" });
     }
 
     if (activeBudgetsCount > 0) {

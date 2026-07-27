@@ -8,30 +8,7 @@ const Account = require("../models/Account");
 exports.getAll = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    let accounts = await Account.find({ user: userId, isDeleted: false }).sort({ createdAt: 1 }).lean();
-
-    // Auto-seed default accounts for new users if they have none
-    if (accounts.length === 0) {
-      const defaults = [
-        {
-          user: userId,
-          name: "Primary Checking & Savings",
-          accountNumber: "4821 9801 2345 7890",
-          balance: 8450.0,
-          type: "savings",
-        },
-        {
-          user: userId,
-          name: "Investment Portfolio",
-          accountNumber: "INV-8830192",
-          balance: 14200.5,
-          type: "investment",
-        },
-      ];
-
-      const created = await Account.insertMany(defaults);
-      accounts = created.map((a) => a.toObject());
-    }
+    const accounts = await Account.find({ user: userId, isDeleted: false }).sort({ createdAt: 1 }).lean();
 
     const mapped = accounts.map((a) => ({
       ...a,
